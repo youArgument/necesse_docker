@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  necesse-server:
+    build: .
+    container_name: necesse-dedicated
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    ports:
+      - "14159:14159/udp"
+    environment:
+      - WORLD_NAME=MyWorld
+      - PORT=14159
+      - SLOTS=10
+      - PASSWORD=
+    volumes:
+      - ./saves:/home/steam/saves
