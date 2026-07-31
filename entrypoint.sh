@@ -8,19 +8,20 @@ export STEAM_COMPAT_CLIENT_INSTALL_PATH="$HOME/.steam/steam"
 SERVER_DIR="/home/steam/necesse"
 SAVE_DIR="/home/steam/saves"
 
+# 1. Исправляем владельца папки сохранений (Proxmox Bind Mount)
+echo "=== Настройка прав доступа к директории сохранений ==="
+mkdir -p "$SAVE_DIR/cfg" "$SERVER_DIR"
+chown -R steam:steam "$SAVE_DIR" "$SERVER_DIR"
+
 echo "=== Обновление/проверка сервера Necesse (App ID: 1169370) ==="
 
-CPU_MHZ=2000.000 steamcmd +@ShutdownOnFailedCommand 0 \
+# Запускаем steamcmd от имени пользователя steam
+gosu steam bash -c "CPU_MHZ=2000.000 steamcmd +@ShutdownOnFailedCommand 0 \
                          +@NoPromptForPassword 1 \
-                         +force_install_dir "$SERVER_DIR" \
+                         +force_install_dir '$SERVER_DIR' \
                          +login anonymous \
                          +app_update 1169370 validate \
-                         +quit </dev/null || true
-
-# Исправляем права на папку сохранений, если она была смонтирована root-ом
-if [ -d "$SAVE_DIR" ]; then
-    mkdir -p "$SAVE_DIR/cfg"
-fi
+                         +quit </dev/null || true"
 
 echo "=== Запуск сервера Necesse ==="
 cd "$SERVER_DIR"
@@ -41,7 +42,8 @@ fi
 
 if [ -f "./StartServer-nogui.sh" ]; then
     chmod +x ./StartServer-nogui.sh
-    exec ./StartServer-nogui.sh $ARGS
+    # Запускаем процесс игры от имени пользователя steam
+    exec gosu steam ./StartServer-nogui.sh $ARGS
 else
     echo "Ошибка: StartServer-nogui.sh не найден в $SERVER_DIR!"
     exit 1
