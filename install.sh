@@ -1,4 +1,3 @@
-```bash
 #!/usr/bin/env bash
 # olcRTC Installer v1.0.0 — corrected machine IP detection.
 #
