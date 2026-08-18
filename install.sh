@@ -1,20 +1,6 @@
 ```bash
 #!/usr/bin/env bash
 # olcRTC Installer v1.0.0 — corrected machine IP detection.
-#
-# Основные исправления:
-#   - IP машины определяется локально через `ip route get`
-#   - нет зависимости от api.ipify.org
-#   - IP записывается в OLCRTC_ADMIN_DOMAIN
-#   - IP + порт записываются в OLCRTC_SUB_PUBLIC_URL
-#   - повторный запуск также использует локально определённый IP
-#
-# Usage:
-#   curl -fsSL .../olcrtc-setup.sh | sudo bash
-#   sudo bash olcrtc-setup.sh --update
-#   sudo bash olcrtc-setup.sh --uninstall
-#   sudo bash olcrtc-setup.sh --show-token
-#   sudo bash olcrtc-setup.sh --status
 
 set -euo pipefail
 
@@ -1503,7 +1489,5 @@ echo ""
 echo "  ⚠  Сертификат самоподписанный."
 echo "     В браузере нажмите 'Дополнительно' → 'Перейти'."
 
-echo ""
 echo "  ═══════════════════════════════════════════"
 echo ""
-```
