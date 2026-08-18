@@ -128,70 +128,39 @@ normalize_carrier() {
 # ─────────────────────────────────────────────────────────────────────────────
 
 get_machine_ip() {
-    local ip=""
+    local iface
+    local ip
 
-    # 1. Основной способ — iproute2.
-    if command -v ip >/dev/null 2>&1; then
-        ip="$(
-            ip -4 route get 1.1.1.1 2>/dev/null |
-            awk '
-                {
-                    for (i = 1; i <= NF; i++) {
-                        if ($i == "src") {
-                            print $(i + 1)
-                            exit
-                        }
-                    }
+    iface="$(
+        ip -4 route show default 2>/dev/null |
+        awk 'NR==1 {
+            for (i=1; i<=NF; i++) {
+                if ($i=="dev") {
+                    print $(i+1)
+                    exit
                 }
-            '
-        )"
-    fi
+            }
+        }'
+    )"
 
-    # Проверяем, что это действительно IPv4.
-    if [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
-       [ "$ip" != "127.0.0.1" ]; then
-        echo "$ip"
-        return 0
-    fi
-
-    # 2. Fallback — hostname -I.
-    if command -v hostname >/dev/null 2>&1; then
+    if [ -n "$iface" ]; then
         ip="$(
-            hostname -I 2>/dev/null |
-            tr ' ' '\n' |
-            grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' |
-            grep -v '^127\.' |
-            head -n1
+            ip -4 addr show dev "$iface" scope global 2>/dev/null |
+            awk '/inet / {
+                split($2, a, "/")
+                print a[1]
+                exit
+            }'
         )"
     fi
 
-    if [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
-       [ "$ip" != "127.0.0.1" ]; then
-        echo "$ip"
+    if [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+        printf '%s\n' "$ip"
         return 0
     fi
 
-    # 3. Последний fallback — hostname -i.
-    if command -v hostname >/dev/null 2>&1; then
-        ip="$(
-            hostname -i 2>/dev/null |
-            tr ' ' '\n' |
-            grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' |
-            grep -v '^127\.' |
-            head -n1
-        )"
-    fi
-
-    if [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
-       [ "$ip" != "127.0.0.1" ]; then
-        echo "$ip"
-        return 0
-    fi
-
-    echo "unknown"
-    return 0
+    return 1
 }
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Download helpers
 # ─────────────────────────────────────────────────────────────────────────────
