@@ -128,31 +128,19 @@ normalize_carrier() {
 # ─────────────────────────────────────────────────────────────────────────────
 
 get_machine_ip() {
-    local iface
     local ip
 
-    iface="$(
-        ip -4 route show default 2>/dev/null |
-        awk 'NR==1 {
-            for (i=1; i<=NF; i++) {
-                if ($i=="dev") {
-                    print $(i+1)
+    ip="$(
+        ip -4 route get 1.1.1.1 2>/dev/null |
+        awk '{
+            for (i = 1; i <= NF; i++) {
+                if ($i == "src") {
+                    print $(i + 1)
                     exit
                 }
             }
         }'
     )"
-
-    if [ -n "$iface" ]; then
-        ip="$(
-            ip -4 addr show dev "$iface" scope global 2>/dev/null |
-            awk '/inet / {
-                split($2, a, "/")
-                print a[1]
-                exit
-            }'
-        )"
-    fi
 
     if [[ "$ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
         printf '%s\n' "$ip"
